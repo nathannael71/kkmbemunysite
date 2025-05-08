@@ -12,11 +12,6 @@ import { useSearchParams, useRouter } from 'next/navigation';
 // Add this query to lib/sanity/queries.js
 // export const galleryCategoriesQuery = `*[_type == "galleryCategory"] | order(title asc) { _id, title, slug }`;
 
-export const metadata = {
-  title: 'Gallery | Karir dan Karya Mahasiswa BEM KM UNY',
-  description: 'Explore photos from events and activities organized by the Karir dan Karya Mahasiswa department at BEM KM Universitas Negeri Yogyakarta'
-}
-
 export default function GalleryPage() {
   const [gallery, setGallery] = useState([]);
   const [settings, setSettings] = useState({});
