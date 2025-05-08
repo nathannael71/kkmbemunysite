@@ -1,11 +1,15 @@
 import { client } from '@/lib/sanity/client';
-import { articleBySlugQuery, articleSlugsQuery } from '@/lib/sanity/queries';
+import { articleBySlugQuery, articleSlugsQuery, relatedArticlesQuery } from '@/lib/sanity/queries';
 import { formatDate } from '@/lib/utils';
 import { urlFor } from '@/lib/sanity/client';
 import Image from 'next/image';
 import Link from 'next/link';
 import { PortableText } from '@portabletext/react';
 import { notFound } from 'next/navigation';
+import ArticleCard from '@/components/ui/ArticleCard';
+
+// Add this query to lib/sanity/queries.js
+// export const relatedArticlesQuery = `*[_type == "article" && count(categories[@._ref in $categoryIds]) > 0 && _id != $articleId] | order(publishedAt desc)[0...3]`;
 
 // Generate static paths for all articles
 export async function generateStaticParams() {
@@ -29,8 +33,19 @@ export async function generateMetadata({ params }) {
     title: `${article.title} | Karir dan Karya Mahasiswa BEM KM UNY`,
     description: article.excerpt,
     openGraph: {
+      title: article.title,
+      description: article.excerpt,
+      type: 'article',
+      publishedTime: article.publishedAt,
+      authors: [article.author?.name],
       images: article.mainImage ? [urlFor(article.mainImage).width(1200).url()] : [],
     },
+    twitter: {
+      card: 'summary_large_image',
+      title: article.title,
+      description: article.excerpt,
+      images: article.mainImage ? [urlFor(article.mainImage).width(1200).url()] : [],
+    }
   };
 }
 
@@ -68,11 +83,18 @@ export default async function ArticlePage({ params }) {
     notFound();
   }
   
+  // Fetch related articles
+  const categoryIds = article.categories?.map(cat => cat._id) || [];
+  const relatedArticles = await client.fetch(relatedArticlesQuery, {
+    categoryIds,
+    articleId: article._id
+  });
+  
   return (
     <div className="pt-24">
       <article className="py-8 section-gradient-1">
         <div className="main-container max-w-4xl">
-          {/* Header */}
+          {/* Article header */}
           <div className="mb-8">
             <Link 
               href="/articles" 
@@ -83,6 +105,21 @@ export default async function ArticlePage({ params }) {
               </svg>
               Back to Articles
             </Link>
+            
+            {/* Categories */}
+            {article.categories && article.categories.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-4">
+                {article.categories.map(category => (
+                  <Link 
+                    key={category._id}
+                    href={`/articles?category=${category.slug.current}`}
+                    className="px-3 py-1 text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 rounded-full"
+                  >
+                    {category.title}
+                  </Link>
+                ))}
+              </div>
+            )}
             
             <h1 className="text-3xl md:text-4xl font-bold heading-apple mb-6">
               {article.title}
@@ -120,6 +157,7 @@ export default async function ArticlePage({ params }) {
                 width={1000}
                 height={500}
                 className="w-full object-cover aspect-video"
+                priority
               />
             </div>
           )}
@@ -132,6 +170,24 @@ export default async function ArticlePage({ params }) {
             />
           </div>
           
+          {/* Tags */}
+          {article.tags && article.tags.length > 0 && (
+            <div className="mt-8">
+              <h3 className="text-lg font-semibold mb-3">Tags</h3>
+              <div className="flex flex-wrap gap-2">
+                {article.tags.map(tag => (
+                  <Link 
+                    key={tag._id}
+                    href={`/articles?tag=${tag.slug.current}`}
+                    className="px-3 py-1 text-sm bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    #{tag.title}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+          
           {/* Share Links */}
           <div className="mt-8 text-center">
             <h3 className="text-lg font-semibold mb-3">Share this article</h3>
@@ -141,6 +197,7 @@ export default async function ArticlePage({ params }) {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 bg-[#1DA1F2] rounded-full flex items-center justify-center text-white transition-transform hover:scale-110"
+                aria-label="Share on Twitter"
               >
                 <i className="fab fa-twitter"></i>
               </a>
@@ -149,6 +206,7 @@ export default async function ArticlePage({ params }) {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 bg-[#1877F2] rounded-full flex items-center justify-center text-white transition-transform hover:scale-110"
+                aria-label="Share on Facebook"
               >
                 <i className="fab fa-facebook-f"></i>
               </a>
@@ -157,6 +215,7 @@ export default async function ArticlePage({ params }) {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 bg-[#0A66C2] rounded-full flex items-center justify-center text-white transition-transform hover:scale-110"
+                aria-label="Share on LinkedIn"
               >
                 <i className="fab fa-linkedin-in"></i>
               </a>
@@ -165,6 +224,7 @@ export default async function ArticlePage({ params }) {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 bg-[#25D366] rounded-full flex items-center justify-center text-white transition-transform hover:scale-110"
+                aria-label="Share on WhatsApp"
               >
                 <i className="fab fa-whatsapp"></i>
               </a>
@@ -172,6 +232,23 @@ export default async function ArticlePage({ params }) {
           </div>
         </div>
       </article>
+      
+      {/* Related Articles Section */}
+      {relatedArticles.length > 0 && (
+        <section className="py-16 section-gradient-2">
+          <div className="main-container">
+            <h2 className="text-2xl md:text-3xl font-bold heading-apple text-apple-darkgray dark:text-white mb-8 text-center">
+              Related Articles
+            </h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {relatedArticles.map(article => (
+                <ArticleCard key={article._id} article={article} />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
     </div>
   )
 }
