@@ -8,7 +8,7 @@ export default defineConfig({
   name: 'default',
   title: 'KKM BEM UNY',
 
-  projectId: 'your-sanity-project-id',
+  projectId: 'h0v94jil',
   dataset: 'production',
 
   plugins: [
