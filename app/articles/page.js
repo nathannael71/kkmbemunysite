@@ -9,11 +9,6 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import PaginationControls from '@/components/ui/PaginationControls';
 
-export const metadata = {
-  title: 'Articles | Karir dan Karya Mahasiswa BEM KM UNY',
-  description: 'Explore articles and insights from the Karir dan Karya Mahasiswa department at BEM KM Universitas Negeri Yogyakarta'
-}
-
 export default async function ArticlesPage({ searchParams }) {
   const currentPage = parseInt(searchParams?.page) || 1;
   const pageSize = 9;
