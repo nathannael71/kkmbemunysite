@@ -4,7 +4,6 @@ const nextConfig = {
     domains: ['cdn.sanity.io', 'images.unsplash.com'],
   },
   experimental: {
-    serverActions: true,
   },
 }
 
