@@ -23,6 +23,12 @@ export default {
       validation: Rule => Rule.required()
     },
     {
+      name: 'categories',
+      title: 'Categories',
+      type: 'array',
+      of: [{ type: 'reference', to: { type: 'galleryCategory' } }]
+    },
+    {
       name: 'description',
       title: 'Description',
       type: 'text',
