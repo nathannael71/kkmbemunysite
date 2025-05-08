@@ -7,10 +7,15 @@ import team from './team'
 import timeline from './timeline'
 import about from './about'
 import siteSettings from './siteSettings'
+import category from './category'
+import galleryCategory from './galleryCategory'
+import tag from './tag'
 
 export const schemaTypes = [
   article,
   author,
+  category,
+  galleryCategory,
   gallery,
   hero,
   program,
